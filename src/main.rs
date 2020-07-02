@@ -1,4 +1,5 @@
 use chrono::prelude::*;
+use std::fmt;
 use std::num::ParseFloatError;
 
 fn main() {
@@ -13,13 +14,13 @@ fn main() {
         Err(e) => panic!("An error occured when parsing declination: {:?}", e),
     };
 
-    let m1 = AstroObject::new("M1: Crab Nebula (Supernova Remnant)", m1_ra, m1_dec);
+    let m1 = AstroObject::new("M1 Crab Nebula (Supernova Remnant)", m1_ra, m1_dec);
 
     let location = GeoCoords {
         lat: 34.0522,
         long: 118.2437,
     };
-
+    println!("{}", m1);
     println!("{:?}", m1.coords_as_alt_az(location));
 }
 
@@ -28,7 +29,7 @@ struct GeoCoords {
     long: f32,
 }
 struct AstroObject<'a> {
-    _name: &'a str,
+    name: &'a str,
     right_ascension: f32,
     declination: f32,
 }
@@ -95,11 +96,12 @@ fn calculate_alt_az(ha: f32, dec: f32, location: GeoCoords) -> (f32, f32) {
 impl<'a> AstroObject<'a> {
     fn new(obj_name: &str, right_ascension: f32, declination: f32) -> AstroObject {
         AstroObject {
-            _name: obj_name,
+            name: obj_name,
             right_ascension: right_ascension,
             declination: declination,
         }
     }
+
     fn coords_as_alt_az(&self, location_info: GeoCoords) -> (f32, f32) {
         let days_j2000 = calculate_days_since_j2000();
         let local_sidereal_time = calculate_local_sidereal_time(days_j2000, location_info.long);
@@ -109,5 +111,15 @@ impl<'a> AstroObject<'a> {
         };
         let alt_az = calculate_alt_az(hour_angle, self.declination, location_info);
         alt_az
+    }
+}
+impl<'a> fmt::Display for AstroObject<'a> {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        // write out the object name, it's RA, and DEC
+        write!(
+            f,
+            "Name: {} \n Right Ascension: {} \n Declination: {} \n",
+            self.name, self.right_ascension, self.declination
+        )
     }
 }
